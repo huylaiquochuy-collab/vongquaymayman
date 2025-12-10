@@ -1,0 +1,442 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vòng Quay May Mắn (Có Lưu Kết Quả)</title>
+    <style>
+        /* ==================== CSS (Giao Diện) ==================== */
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background-color: #e0f7fa;
+            margin: 0;
+            flex-direction: column;
+        }
+
+        .container {
+            text-align: center;
+            background: #ffffff;
+            padding: 40px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+            max-width: 500px;
+            width: 100%;
+        }
+
+        h1 {
+            color: #00796b;
+            margin-bottom: 25px;
+        }
+
+        /* --- Khu vực Email --- */
+        #email-area {
+            margin-bottom: 20px;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            background: #f0f8ff;
+        }
+        #userEmailInput {
+            padding: 10px;
+            margin-right: 5px;
+            border: 2px solid #bdbdbd;
+            border-radius: 8px;
+            font-size: 16px;
+            width: 180px;
+        }
+        #confirmEmailBtn {
+            padding: 10px 15px;
+            font-size: 16px;
+            cursor: pointer;
+            background-color: #4caf50;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-weight: bold;
+            transition: background-color 0.3s;
+        }
+        #confirmEmailBtn:hover {
+            background-color: #388e3c;
+        }
+        #user-info {
+            font-weight: bold;
+            min-height: 20px;
+            margin-top: 10px;
+        }
+
+        /* --- Khu vực nhập mã --- */
+        .input-area {
+            margin-bottom: 30px;
+        }
+
+        #promoCode {
+            padding: 10px;
+            margin-right: 5px;
+            border: 2px solid #bdbdbd;
+            border-radius: 8px;
+            font-size: 16px;
+            width: 180px;
+        }
+
+        #checkCodeBtn {
+            padding: 10px 15px;
+            font-size: 16px;
+            cursor: pointer;
+            background-color: #00bcd4;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-weight: bold;
+            transition: background-color 0.3s;
+        }
+        #checkCodeBtn:hover {
+            background-color: #0097a7;
+        }
+
+        #message {
+            margin-top: 10px;
+            font-weight: bold;
+            min-height: 20px;
+        }
+
+        #spinsLeft {
+            font-size: 18px;
+            font-weight: bold;
+            color: #d32f2f;
+            margin-top: 10px;
+            margin-bottom: 30px;
+        }
+        
+        /* --- CHÚ GIẢI (LEGEND) --- */
+        .legend-area {
+            text-align: left;
+            margin-bottom: 30px;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            background-color: #f9f9f9;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            margin-bottom: 5px;
+            font-size: 14px;
+        }
+
+        .color-box {
+            width: 16px;
+            height: 16px;
+            margin-right: 8px;
+            border-radius: 3px;
+            border: 1px solid #ccc;
+        }
+        .color-green { background-color: #4caf50; }
+        .color-yellow { background-color: #ffc107; }
+        .color-pink { background-color: #e91e63; }
+        .color-blue { background-color: #00bcd4; }
+
+
+        /* --- Vòng Quay --- */
+        .wheel-container {
+            position: relative;
+            width: 350px; 
+            height: 350px;
+            margin: 0 auto 40px auto; 
+        }
+
+        .wheel {
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            position: relative;
+            /* Tạo màu nền cho 4 phần: */
+            background: conic-gradient(
+                #4caf50 0% 25%,     /* Chúc May Mắn (Xanh lá) 0-90 */
+                #ffc107 25% 50%,    /* Móc Khóa (Vàng) 90-180 */
+                #e91e63 50% 75%,    /* Gấu Bông (Hồng) 180-270 */
+                #00bcd4 75% 100%    /* Mô Hình (Xanh dương) 270-360 */
+            );
+            transition: transform 4s cubic-bezier(0.25, 1, 0.5, 1);
+            border: 8px solid #333;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.3);
+            overflow: hidden;
+        }
+
+        /* Kim chỉ (Pointer) - Ở TRÊN, TRỎ XUỐNG (0 độ / 12h) */
+        .spinner-pointer {
+            position: absolute;
+            top: 0; 
+            left: 50%;
+            transform: translateX(-50%);
+            width: 0;
+            height: 0;
+            
+            /* Tạo hình tam giác trỏ xuống dưới */
+            border-left: 15px solid transparent;
+            border-right: 15px solid transparent;
+            border-top: 30px solid #d32f2f; /* Màu đỏ */
+            
+            z-index: 10;
+            filter: drop-shadow(0 2px 2px rgba(0,0,0,0.3));
+        }
+        
+        #spinBtn {
+            padding: 12px 40px;
+            font-size: 20px;
+            cursor: pointer;
+            background-color: #00bcd4;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            box-shadow: 0 4px #00838f;
+            transition: all 0.1s;
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+
+        #spinBtn:disabled {
+            background-color: #bdbdbd;
+            box-shadow: none;
+            cursor: not-allowed;
+        }
+        
+        #spinBtn:active:not(:disabled) {
+            transform: translateY(2px);
+            box-shadow: 0 2px #00838f;
+        }
+
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h1>Vòng Quay May Mắn</h1>
+        
+        <div id="email-area">
+            <h3>Bước 1: Nhập Email để tham gia</h3>
+            <input type="email" id="userEmailInput" placeholder="Nhập email của bạn (Ví dụ: abc@gmail.com)">
+            <button id="confirmEmailBtn">Xác nhận Email</button>
+            <p id="user-info">Chưa xác nhận Email</p>
+        </div>
+        
+        <div class="input-area">
+            <input type="text" id="promoCode" placeholder="Bước 2: Nhập Mã (1-10)">
+            <button id="checkCodeBtn" disabled>Kiểm Tra Mã</button>
+            <p id="message"></p>
+            <p id="spinsLeft">Lượt quay còn lại: 0</p>
+        </div>
+
+        <div class="legend-area">
+            <h2>Chú giải giải thưởng:</h2>
+            <div class="legend-item">
+                <div class="color-box color-green"></div>
+                <span>Chúc May Mắn Lần Sau</span> 
+            </div>
+            <div class="legend-item">
+                <div class="color-box color-yellow"></div>
+                <span>Móc Khóa</span>
+            </div>
+            <div class="legend-item">
+                <div class="color-box color-pink"></div>
+                <span>Gấu Bông</span>
+            </div>
+            <div class="legend-item">
+                <div class="color-box color-blue"></div>
+                <span>Mô Hình</span>
+            </div>
+        </div>
+        <div class="wheel-container">
+            <div class="spinner-pointer"></div>
+            
+            <div class="wheel" id="wheel">
+                </div>
+        </div>
+
+        <button id="spinBtn" disabled>QUAY NGAY</button>
+    </div>
+
+    <script>
+        // ==========================================================
+        // URL API CỦA BẠN ĐÃ ĐƯỢC THAY THẾ TẠI ĐÂY!
+        // ==========================================================
+        const API_ENDPOINT = "https://script.google.com/macros/s/AKfycbw6nYTlHtNjH5uKay-tczL9OWPk7Ffo_QYK26fYkGETrruJfJMJI8-WlBID-bmbuIRQ/exec"; 
+        
+        let currentUserEmail = null; 
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const checkCodeBtn = document.getElementById('checkCodeBtn');
+            const spinBtn = document.getElementById('spinBtn');
+            const promoCodeInput = document.getElementById('promoCode');
+            const messageDisplay = document.getElementById('message');
+            const spinsLeftDisplay = document.getElementById('spinsLeft');
+            const wheel = document.getElementById('wheel');
+            
+            // Các thành phần mới
+            const userEmailInput = document.getElementById('userEmailInput');
+            const confirmEmailBtn = document.getElementById('confirmEmailBtn');
+            const userInfoDisplay = document.getElementById('user-info');
+            const emailArea = document.getElementById('email-area');
+
+            // Cấu hình Giải thưởng (Tỷ lệ 60/30/5/5)
+            const prizes = [
+                { name: "Chúc May Mắn Lần Sau", probability: 60, angleStart: 0, angleEnd: 90, color: "#4caf50" }, 
+                { name: "Móc Khóa", probability: 30, angleStart: 90, angleEnd: 180, color: "#ffc107" },
+                { name: "Gấu Bông", probability: 5, angleStart: 180, angleEnd: 270, color: "#e91e63" },
+                { name: "Mô Hình", probability: 5, angleStart: 270, angleEnd: 360, color: "#00bcd4" }
+            ];
+
+            // Cấu hình Mã Khuyến Mãi (1 -> 10)
+            const codeRedemptionMap = {
+                '1': 1, '2': 2, '3': 3, '4': 4, '5': 5,
+                '6': 6, '7': 7, '8': 8, '9': 9, '10': 10,
+                'FREE': 5 
+            };
+            
+            let spinsRemaining = 0;
+            let usedCodes = [];
+            let currentRotation = 0; 
+
+            // LOGIC XÁC NHẬN EMAIL
+            confirmEmailBtn.addEventListener('click', () => {
+                const email = userEmailInput.value.trim();
+                if (email.length > 5 && email.includes('@')) {
+                    currentUserEmail = email;
+                    userInfoDisplay.textContent = `Đã xác nhận: ${currentUserEmail}`;
+                    userInfoDisplay.style.color = "#00796b";
+                    
+                    checkCodeBtn.disabled = false;
+                    
+                    userEmailInput.disabled = true;
+                    confirmEmailBtn.disabled = true;
+                    emailArea.style.border = "1px solid #00796b"; 
+                    messageDisplay.textContent = "Nhập mã và bắt đầu quay!";
+
+                } else {
+                    userInfoDisplay.textContent = "Vui lòng nhập địa chỉ Email hợp lệ.";
+                    userInfoDisplay.style.color = "red";
+                    checkCodeBtn.disabled = true;
+                }
+            });
+
+            // Kiểm tra mã
+            checkCodeBtn.addEventListener('click', () => {
+                if (!currentUserEmail) return; 
+                
+                const inputCode = promoCodeInput.value.toUpperCase().trim(); 
+                const spinsToGrant = codeRedemptionMap[inputCode];
+
+                if (spinsToGrant === undefined) {
+                    messageDisplay.textContent = `Mã "${inputCode}" không hợp lệ.`;
+                    messageDisplay.style.color = "red";
+                    spinBtn.disabled = (spinsRemaining <= 0); 
+                    return;
+                }
+                
+                if (usedCodes.includes(inputCode)) {
+                    messageDisplay.textContent = `Mã "${inputCode}" đã được sử dụng.`;
+                    messageDisplay.style.color = "orange";
+                    spinBtn.disabled = (spinsRemaining <= 0);
+                    return;
+                }
+                
+                usedCodes.push(inputCode);
+                spinsRemaining += spinsToGrant;
+                
+                spinsLeftDisplay.textContent = `Lượt quay còn lại: ${spinsRemaining}`;
+                messageDisplay.textContent = `Nhận thành công ${spinsToGrant} lượt quay!`;
+                messageDisplay.style.color = "green";
+                spinBtn.disabled = false;
+                promoCodeInput.value = '';
+            });
+
+            // Logic Quay
+            spinBtn.addEventListener('click', () => {
+                if (spinsRemaining <= 0 || !currentUserEmail) return;
+
+                // Chuẩn bị quay
+                spinBtn.disabled = true;
+                spinsRemaining--;
+                spinsLeftDisplay.textContent = `Lượt quay còn lại: ${spinsRemaining}`;
+                messageDisplay.textContent = ""; 
+
+                // 1. Xác định kết quả
+                let result = getSpinResult();
+                
+                // 2. Tính góc dừng
+                let angleToStopAt = getAngleToStopAt(result);
+                
+                // 3. Tính toán tổng góc quay tích lũy
+                const baseRotations = 5 * 360; 
+                const angleIncrement = (360 - angleToStopAt); 
+                currentRotation += baseRotations + angleIncrement; 
+
+                // Thiết lập chuyển động
+                wheel.style.transform = `rotate(${currentRotation}deg)`;
+
+                // Hiển thị kết quả sau khi quay xong
+                setTimeout(() => {
+                    alert(`🎉 Chúc mừng! Bạn đã trúng: ${result.name}`);
+                    messageDisplay.textContent = `Bạn đã trúng: ${result.name}.`;
+                    messageDisplay.style.color = result.color;
+                    
+                    // GỌI HÀM GỬI KẾT QUẢ VỀ EMAIL
+                    const lastUsedCode = usedCodes.length > 0 ? usedCodes[usedCodes.length - 1] : "N/A";
+                    sendResultToGmail(result.name, lastUsedCode);
+                    
+                    if (spinsRemaining > 0) spinBtn.disabled = false;
+                    else messageDisplay.textContent += " (Hết lượt)";
+
+                }, 4000); 
+            });
+            
+            // HÀM GỬI DỮ LIỆU ĐẾN GOOGLE APPS SCRIPT
+            async function sendResultToGmail(prizeName, usedCode) {
+                const data = {
+                    action: 'submit_spin',
+                    userEmail: currentUserEmail,
+                    prize: prizeName,
+                    promoCode: usedCode
+                };
+                
+                // Biến đổi object thành chuỗi query string để phù hợp với Apps Script
+                const queryString = Object.keys(data).map(key => encodeURIComponent(key) + '=' + encodeURIComponent(data[key])).join('&');
+
+                try {
+                    // Gửi GET request 
+                    const response = await fetch(`${API_ENDPOINT}?${queryString}`, {
+                        method: 'GET',
+                    });
+                    
+                    console.log("Kết quả đã được gửi tới Apps Script API thành công.");
+
+                } catch (error) {
+                    console.error("Lỗi kết nối API:", error);
+                }
+            }
+            
+            function getSpinResult() {
+                const rand = Math.random() * 100;
+                let cumulativeProbability = 0;
+                for (const prize of prizes) {
+                    cumulativeProbability += prize.probability;
+                    if (rand < cumulativeProbability) return prize;
+                }
+                return prizes[prizes.length - 1]; 
+            }
+
+            function getAngleToStopAt(prize) {
+                const minAngle = prize.angleStart + 10;
+                const maxAngle = prize.angleEnd - 10;
+                
+                return Math.random() * (maxAngle - minAngle) + minAngle;
+            }
+        });
+    </script>
+</body>
+</html>
